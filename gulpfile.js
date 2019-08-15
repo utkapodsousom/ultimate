@@ -8,6 +8,7 @@ const { argv } = require("yargs");
 const svgSprite = require("gulp-svg-sprite");
 const compress_images = require("compress-images");
 const spritesmith = require("gulp.spritesmith");
+const critical = require("critical");
 
 const $ = gulpLoadPlugins();
 const server = browserSync.create();
@@ -109,8 +110,8 @@ const compressionOptions = {
 // Engine for compressing jpeg/png and options compress.
 const engineJPEGOptions = {
   jpg: {
-    engine: "jpegRecompress",
-    command: ["--quality", "high", "--min", "60"]
+    engine: "mozjpeg",
+    command: ["-quality", "80", "-progressive"]
   }
 };
 
@@ -132,13 +133,18 @@ function compressImages() {
       },
       function(err) {
         if (err !== null) {
-          if (err.engine === "jpegRecompress") {
+          if (err.engine === "mozjpeg") {
             compress_images(
               err.input,
               err.output,
               { compress_force: false, statistic: true, autoupdate: true },
               false,
-              { jpg: { engine: "mozjpeg", command: ["-quality", "60"] } },
+              {
+                jpg: {
+                  engine: "jpegRecompress",
+                  command: ["--quality", "high", "--min", "60"]
+                }
+              },
               { png: { engine: false, command: false } },
               { svg: { engine: false, command: false } },
               { gif: { engine: false, command: false } },
@@ -175,11 +181,11 @@ function svgSprites() {
     .pipe($.if(!isProd, dest("app/images"), dest("dist/images")));
 }
 
-// function fonts() {
-//   return src("app/fonts/**/*.{eot,svg,ttf,woff,woff2}").pipe(
-//     $.if(!isProd, dest(".tmp/fonts"), dest("dist/fonts"))
-//   );
-// }
+function fonts() {
+  return src("app/fonts/**/*.{eot,svg,ttf,woff,woff2}").pipe(
+    $.if(!isProd, dest(".tmp/fonts"), dest("dist/fonts"))
+  );
+}
 
 function extras() {
   return src(["app/*", "!app/*.html"], {
@@ -193,6 +199,21 @@ function clean() {
 
 function measureSize() {
   return src("dist/**/*").pipe($.size({ title: "build", gzip: true }));
+}
+
+function criticalPath() {
+  return new Promise(function(resolve, reject) {
+    critical.generate({
+      inline: true,
+      base: "dist/",
+      src: "index.html",
+      dest: "critical.html",
+      minify: true,
+      width: 480,
+      height: 540
+    });
+    resolve();
+  })
 }
 
 const build = series(
@@ -259,6 +280,7 @@ if (isDev) {
 exports.pngsprites = pngSprites;
 exports.compress = compressImages;
 exports.svgsprites = svgSprites;
+exports.criticalPath = criticalPath;
 exports.serve = serve;
 exports.build = build;
 exports.default = build;
