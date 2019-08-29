@@ -194,7 +194,7 @@ function extras() {
 }
 
 function clean() {
-  return del([".tmp", "dist"]);
+  return del([".tmp", "dist", "app/images/icons/sprite.png", "app/images/icons/sprite.css"]);
 }
 
 function measureSize() {
