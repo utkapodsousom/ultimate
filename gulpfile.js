@@ -102,7 +102,7 @@ function html() {
 // compression options
 const compressionOptions = {
   compress_force: false,
-  statistic: false,
+  statistic: true,
   autoupdate: true,
   pathLog: "./log/lib/compress-images"
 };
@@ -110,8 +110,8 @@ const compressionOptions = {
 // Engine for compressing jpeg/png and options compress.
 const engineJPEGOptions = {
   jpg: {
-    engine: "mozjpeg",
-    command: ["-quality", "80", "-progressive"]
+    engine: "jpegtran",
+    command: ['-trim', '-progressive', '-copy', 'none', '-optimize']
   }
 };
 
@@ -123,12 +123,12 @@ function compressImages() {
       compressionOptions,
       false,
       engineJPEGOptions,
-      { png: { engine: "pngquant", command: ["--quality=20-50"] } },
-      { svg: { engine: "svgo", command: "--multipass" } },
+      {png: {engine: 'pngquant', command: ['--quality=50-80']}},
+      {svg: {engine: 'svgo', command: ['--multipass']}},
       {
         gif: {
-          engine: "gifsicle",
-          command: ["--colors", "64", "--use-col=web"]
+          engine: 'giflossy',
+          command: false
         }
       },
       function(err) {
@@ -142,7 +142,7 @@ function compressImages() {
               {
                 jpg: {
                   engine: "jpegRecompress",
-                  command: ["--quality", "high", "--min", "60"]
+                  command: ["--quality", "high", "--min", "80"]
                 }
               },
               { png: { engine: false, command: false } },
