@@ -5,9 +5,7 @@ const del = require("del");
 const autoprefixer = require("autoprefixer");
 const cssnano = require("cssnano");
 const { argv } = require("yargs");
-const svgSprite = require("gulp-svg-sprite");
 const compress_images = require("compress-images");
-const spritesmith = require("gulp.spritesmith");
 const critical = require("critical");
 
 const $ = gulpLoadPlugins();
@@ -17,22 +15,6 @@ const port = argv.port || 9000;
 
 const isProd = process.env.NODE_ENV === "production";
 const isDev = !isProd;
-
-const spriterConfig = {
-  dest: "dist",
-  log: "info",
-  mode: {
-    css: {
-      example: true,
-      render: {
-        scss: true
-      }
-    },
-    symbol: {
-      example: true
-    }
-  }
-};
 
 function styles() {
   return src("app/styles/*.scss")
@@ -163,24 +145,6 @@ function compressImages() {
   });
 }
 
-function pngSprites() {
-  return src("app/images/icons/*.png")
-    .pipe(
-      spritesmith({
-        imgName: "sprite.png",
-        cssName: "sprite.css",
-        padding: 20
-      })
-    )
-    .pipe($.if(!isProd, dest("app/images/icons/"), dest("dist/images/icons")));
-}
-
-function svgSprites() {
-  return src("app/images/icons/svg/*")
-    .pipe(svgSprite(spriterConfig))
-    .pipe($.if(!isProd, dest("app/images"), dest("dist/images")));
-}
-
 function fonts() {
   return src("app/fonts/**/*.{eot,svg,ttf,woff,woff2}").pipe(
     $.if(!isProd, dest(".tmp/fonts"), dest("dist/fonts"))
@@ -194,26 +158,11 @@ function extras() {
 }
 
 function clean() {
-  return del([".tmp", "dist", "app/images/icons/sprite.png", "app/images/icons/sprite.css"]);
+  return del([".tmp", "dist"]);
 }
 
 function measureSize() {
   return src("dist/**/*").pipe($.size({ title: "build", gzip: true }));
-}
-
-function criticalPath() {
-  return new Promise(function(resolve, reject) {
-    critical.generate({
-      inline: true,
-      base: "dist/",
-      src: "index.html",
-      dest: "critical.html",
-      minify: true,
-      width: 480,
-      height: 540
-    });
-    resolve();
-  })
 }
 
 const build = series(
@@ -223,12 +172,10 @@ const build = series(
     series(parallel(styles, scripts), html),
     // images,
     compressImages,
-    // fonts,
+    fonts,
     extras
   ),
-  measureSize,
-  svgSprites,
-  pngSprites
+  measureSize
 );
 
 function startAppServer() {
@@ -270,17 +217,15 @@ let serve;
 if (isDev) {
   serve = series(
     clean,
-    parallel(styles, scripts, svgSprites, pngSprites),
+    parallel(styles, scripts),
     startAppServer
   );
 } else if (isProd) {
   serve = series(build, startDistServer);
 }
 
-exports.pngsprites = pngSprites;
 exports.compress = compressImages;
-exports.svgsprites = svgSprites;
-exports.criticalPath = criticalPath;
 exports.serve = serve;
 exports.build = build;
+exports.clean = clean;
 exports.default = build;
