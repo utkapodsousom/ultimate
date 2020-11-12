@@ -67,8 +67,8 @@ function html() {
       $.if(
         /\.html$/,
         $.htmlmin({
-          collapseWhitespace: true,
-          minifyCSS: true,
+          collapseWhitespace: false,
+          minifyCSS: false,
           minifyJS: { compress: { drop_console: true } },
           processConditionalComments: true,
           removeComments: true,
@@ -165,6 +165,28 @@ function measureSize() {
   return src("dist/**/*").pipe($.size({ title: "build", gzip: true }));
 }
 
+function criticalPath() {
+  return new Promise(function(resolve, reject) {
+    critical.generate({
+      inline: true,
+      base: "dist/",
+      src: "index.html",
+      dest: "critical.html",
+      minify: true,
+      width: 480,
+      height: 800,
+      target: {
+        css: 'dist/critical2.css',
+        html: 'dist/critical2.html',
+        uncritical: 'dist/uncritical2.css',
+      },
+      extract: true,
+      minify: true,
+    });
+    resolve();
+  })
+}
+
 const build = series(
   clean,
   parallel(
@@ -225,6 +247,7 @@ if (isDev) {
 }
 
 exports.compress = compressImages;
+exports.critical = criticalPath;
 exports.serve = serve;
 exports.build = build;
 exports.clean = clean;
