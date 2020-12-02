@@ -6,6 +6,7 @@ const autoprefixer = require("autoprefixer");
 const cssnano = require("cssnano");
 const { argv } = require("yargs");
 const compress_images = require("compress-images");
+const webp = require('gulp-webp');
 const critical = require("critical");
 
 const $ = gulpLoadPlugins();
@@ -145,6 +146,12 @@ function compressImages() {
   });
 }
 
+function convertToWEBP() {
+  return src("app/images/*.{jpg,JPG,jpeg,JPEG,png}")
+    .pipe(webp())
+    .pipe(dest("dist/images/webp"));
+}
+
 function fonts() {
   return src("app/fonts/**/*.{eot,svg,ttf,woff,woff2}").pipe(
     $.if(!isProd, dest(".tmp/fonts"), dest("dist/fonts"))
@@ -196,7 +203,8 @@ const build = series(
     compressImages,
     fonts,
     extras
-  ),
+    ),
+  convertToWEBP,
   measureSize
 );
 
@@ -248,6 +256,7 @@ if (isDev) {
 
 exports.compress = compressImages;
 exports.critical = criticalPath;
+exports.webp = convertToWEBP;
 exports.serve = serve;
 exports.build = build;
 exports.clean = clean;
