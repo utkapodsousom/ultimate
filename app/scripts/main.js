@@ -1,3 +1,11 @@
+// Modernizr.on('webp', function(result) {
+//     if (result) {
+//       console.log("supported webp");
+//     } else {
+//       // not-supported
+//     }
+//   });
+
 function Timer(options) {
   this.hour = document.querySelectorAll("".concat(options.hour));
   this.min = document.querySelectorAll("".concat(options.min));
@@ -79,13 +87,13 @@ function smoothScroll(el, to, duration) {
   window.requestAnimationFrame(step);
 }
 
-$(document).on("click", 'a[href^="#"]', function (e) {
-  var id = $(this).attr("href");
-  var $id = $(id);
-  if ($id.length === 0) {
-    return;
-  }
-  e.preventDefault();
-  var pos = $id.offset().top - 70;
-  smoothScroll($(window), $($(e.currentTarget).attr("href")).offset().top, 600);
-});
+// $(document).on("click", 'a[href^="#"]', function (e) {
+//   var id = $(this).attr("href");
+//   var $id = $(id);
+//   if ($id.length === 0) {
+//     return;
+//   }
+//   e.preventDefault();
+//   var pos = $id.offset().top - 70;
+//   smoothScroll($(window), $($(e.currentTarget).attr("href")).offset().top, 600);
+// });
